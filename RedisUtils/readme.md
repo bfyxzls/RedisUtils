@@ -19,3 +19,6 @@ DemandSlave = 12;	//此操作只应在[从站]上执行。 仅适用于读取操
 NoRedirect = 64;	//表示由于ASK或MOVED响应，不应将此操作转发到其他服务器
 NoScriptCache = 512 //表示与脚本相关的操作应使用EVAL，而不是SCRIPT LOAD + EVALSHA
 ```
+
+5. set和list
+set和list都叫集合，set里的内容不能重复，list可以重复，list可以实现队列

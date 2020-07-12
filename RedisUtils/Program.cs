@@ -3,6 +3,7 @@ using RedisUtils;
 using StackExchange.Redis;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -14,6 +15,7 @@ namespace redis.@lock
         {
             RedisManager.Instance.GetDatabase(0).StringSet("hello", "你好");
             redisList();
+            //redisListGet();
             //sql_insert("beijing", 20);
             //sql_insert("hebei", 25);
             //sql();
@@ -22,6 +24,33 @@ namespace redis.@lock
         }
 
         static void redisList()
+        {
+            Stopwatch stopwatch = new Stopwatch();
+            stopwatch.Start();
+            List<RedisValue> redisValues = new List<RedisValue>();
+            for (int i = 0; i < 10000; i++)
+            {
+                redisValues.Add(JsonConvert.SerializeObject(new userinfo { id = i, name = "zzl" + i }));
+            }
+            RedisManager.Instance.GetDatabase().ListLeftPush("orderList", redisValues.ToArray());
+            RedisManager.Instance.GetDatabase().KeyExpire("orderList", DateTime.Now.AddMinutes(1));
+            stopwatch.Stop();
+            Console.WriteLine("10000 record time(ms):" + stopwatch.ElapsedMilliseconds);
+
+        }
+
+        static void redisListGet()
+        {
+            Stopwatch stopwatch = new Stopwatch();
+            stopwatch.Start();
+            RedisValue[] redisValues = RedisManager.Instance.GetDatabase().ListRange("orderList");
+            stopwatch.Stop();
+            Console.WriteLine("pop 10000 record time(ms):" + stopwatch.ElapsedMilliseconds);
+
+        }
+
+
+        static void redisSet()
         {
             List<userinfo> list = new List<userinfo>();
             list.Add(new userinfo { id = 1, name = "zzl" });
@@ -34,7 +63,7 @@ namespace redis.@lock
             list.Add(new userinfo { id = 8, name = "lr3" });
             list.Add(new userinfo { id = 9, name = "bobo3" });
             list.Add(new userinfo { id = 10, name = "lr4" });
-            list.Add(new userinfo { id =11, name = "bobo4" });
+            list.Add(new userinfo { id = 11, name = "bobo4" });
             foreach (userinfo u in list)
             {
                 RedisManager.Instance.GetDatabase().SetAdd("hot_data", JsonConvert.SerializeObject(u));
