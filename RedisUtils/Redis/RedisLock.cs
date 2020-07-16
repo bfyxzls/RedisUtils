@@ -35,7 +35,7 @@ namespace RedisUtils
                     throw ex;
                 }
                 finally
-                {   
+                {
                     //处理结束后释放redis进程锁,否则还要阻塞100毫秒
                     RedisManager.Instance.GetDatabase().LockRelease(key, value);
                 }
@@ -74,5 +74,46 @@ namespace RedisUtils
             }
         }
 
+        /// <summary>
+        /// 加锁
+        /// </summary>
+        /// <param name="key">键，业务键</param>
+        /// <param name="value">对应的值 ，为一个guid码</param>
+        /// <param name="milliseconds">豪秒</param>
+        /// <param name="func">要执行的代码片断</param>
+        /// <returns></returns>
+        public static T Lock<T>(
+            string key,
+            string value,
+            int milliseconds,
+            Func<T> func) where T : class
+        {
+
+            if (RedisManager.Instance.GetDatabase().LockTake(key, value, TimeSpan.FromMilliseconds(milliseconds)))
+            {
+                try
+                {
+                    Console.WriteLine("正在处理……");
+                    return func();
+                }
+                catch (Exception ex)
+                {
+                    throw ex;
+                }
+                finally
+                {
+                    //处理结束后释放redis进程锁,否则还要阻塞100毫秒
+                    RedisManager.Instance.GetDatabase().LockRelease(key, value);
+                }
+            }
+            else
+            {
+                Console.WriteLine("锁被占用……");
+                Thread.Sleep(100);
+                return null;
+            }
+
+
         }
+    }
 }
